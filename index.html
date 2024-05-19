@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización de Formularios</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Keep the view focused on the content area */
+            height: 100vh;
+            background-color: #f4f4f4;
+            overflow: auto;
+        }
+        .container {
+            width: 90%;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            border-radius: 5px;
+            padding: 15px 10px;
+            margin-bottom: 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .formulariosAutorizados {
+            border-left: 5px solid #4CAF50; /* Green */
+        }
+        .formulariosNoAutorizados {
+            border-left: 5px solid #f44336; /* Red */
+        }
+        .solicitudesPendientes {
+            border-left: 5px solid #9E9E9E; /* Grey */
+        }
+        #filterForm {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        #filterForm input, #filterForm select, #pageSize {
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .pagination {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .page-number {
+            margin: 0 5px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .page-number.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .headers {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        .header-item, .list-item {
+            flex: 1;
+            padding: -1px 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Visualización de Todos los Formularios</h1>
+        <div id="filterForm">
+            <div>
+                <input type="text" id="searchBox" placeholder="Buscar...">
+                <select id="statusFilter" onchange="applyFilters()">
+                    <option value="all">Todos los estados</option>
+                    <option value="formulariosAutorizados">Autorizados</option>
+                    <option value="formulariosNoAutorizados">No Autorizados</option>
+                    <option value="solicitudesPendientes">Pendientes</option>
+                </select>
+                <select id="sortFilter" onchange="applyFilters()">
+                    <option value="dateAsc">Fecha Ascendente</option>
+                    <option value="dateDesc">Fecha Descendente</option>
+                </select>
+            </div>
+            <select id="pageSize" onchange="applyFilters()">
+                <option value="5">5 por página</option>
+                <option value="10" selected>10 por página</option>
+                <option value="20">20 por página</option>
+            </select>
+        </div>
+        <ul id="formsList"></ul>
+        <div class="pagination"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwD-hcUn3fn7MYgPZ_AOb9lGTDUVd8Ju8",
+            authDomain: "formulario-if---ft.firebaseapp.com",
+            databaseURL: "https://formulario-if---ft-default-rtdb.firebaseio.com",
+            projectId: "formulario-if---ft",
+            storageBucket: "formulario-if---ft.appspot.com",
+            messagingSenderId: "1058547807066",
+            appId: "1:1058547807066:web:4c7a3f5e5effd7d2dcf963",
+            measurementId: "G-LPNRPXMJLY"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let allForms = [];
+        let currentPage = 1;
+
+        async function loadForms() {
+            const collections = ['formulariosAutorizados', 'formulariosNoAutorizados', 'solicitudesPendientes'];
+            for (const collectionName of collections) {
+                const colRef = collection(db, collectionName);
+                const q = query(colRef, orderBy("date", "desc"));
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach(doc => {
+                    allForms.push({...doc.data(), id: doc.id, status: collectionName});
+                });
+            }
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchBox').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const sortOrder = document.getElementById('sortFilter').value;
+            const pageSize = parseInt(document.getElementById('pageSize').value, 10);
+            let filteredForms = allForms.filter(form =>
+                (form.applicant.toLowerCase().includes(search) ||
+                 form.area.toLowerCase().includes(search) ||
+                 form.budgetItem.toLowerCase().includes(search)) &&
+                (status === 'all' || form.status === status)
+            );
+            if (sortOrder === 'dateDesc') {
+                filteredForms.sort((a, b) => b.date.localeCompare(a.date));
+            } else {
+                filteredForms.sort((a, b) => a.date.localeCompare(b.date));
+            }
+            displayForms(filteredForms, pageSize, currentPage);
+            setupPagination(filteredForms.length, pageSize, currentPage);
+        }
+
+        function displayForms(forms, pageSize, page) {
+            const start = (page - 1) * pageSize;
+            const selectedForms = forms.slice(start, start + pageSize);
+            const list = document.getElementById('formsList');
+            list.innerHTML = `
+                <li class="headers">
+                    <div class="header-item">Fecha</div>
+                    <div class="header-item">Solicitante</div>
+                    <div class="header-item">Área</div>
+                    <div class="header-item">Partida Presupuestaria</div>
+                    <div class="header-item">Monto</div>
+                </li>
+            `;
+            list.innerHTML += selectedForms.map(form => `
+                <li class="${form.status}">
+                    <div class="list-item">${form.date}</div>
+                    <div class="list-item">${form.applicant}</div>
+                    <div class="list-item">${form.area}</div>
+                    <div class="list-item">${form.budgetItem}</div>
+                    <div class="list-item">${form.Mount}</div>
+                </li>
+            `).join('');
+        }
+
+        function setupPagination(totalItems, pageSize, page) {
+            const pageCount = Math.ceil(totalItems / pageSize);
+            const pagination = document.querySelector('.pagination');
+            pagination.innerHTML = '';
+            for (let i = 1; i <= pageCount; i++) {
+                const pageNumber = document.createElement('span');
+                pageNumber.className = `page-number ${i === page ? 'active' : ''}`;
+                pageNumber.textContent = i;
+                pageNumber.addEventListener('click', () => {
+                    currentPage = i;
+                    applyFilters();
+                });
+                pagination.appendChild(pageNumber);
+            }
+        }
+
+        document.getElementById('searchBox').addEventListener('keyup', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('sortFilter').addEventListener('change', applyFilters);
+        document.getElementById('pageSize').addEventListener('change', () => {
+            currentPage = 1;
+            applyFilters();
+        });
+
+        loadForms();
+    </script>
+</body>
+</html>

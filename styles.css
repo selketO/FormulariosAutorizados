@@ -1,0 +1,21 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.form-section {
+    margin: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+#authorized-forms {
+    color: green;
+}
+
+#unauthorized-forms {
+    color: red;
+}
+
+#pending-forms {
+    color: gray;
+}
