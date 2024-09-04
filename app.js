@@ -112,7 +112,8 @@ function applyFilters() {
 
     // Lista de correos electrónicos con acceso a todos los formularios
     const specialAccessUsers = [
-        "cobranza@biancorelab.com"
+        "cobranza@biancorelab.com",
+        "talejo@biancorelab.com",
     ];
 
     // Verifica si el usuario tiene acceso especial
