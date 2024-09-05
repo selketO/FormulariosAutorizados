@@ -109,50 +109,51 @@ function applyFilters() {
     const sortOrder = document.getElementById('sortFilter').value;
     const pageSize = parseInt(document.getElementById('pageSize').value, 10);
     const userEmail = sessionStorage.getItem("userEmail").toLowerCase();
+    const userName = sessionStorage.getItem("userName").toLowerCase();
 
-    // Lista de correos electrónicos con acceso a todos los formularios
     const specialAccessUsers = [
         "cobranza@biancorelab.com",
         "talejo@biancorelab.com",
     ];
-
-    // Verifica si el usuario tiene acceso especial
     const hasSpecialAccess = specialAccessUsers.includes(userEmail);
 
     let filteredForms = allForms.filter(form => {
         const matchesSearch = form.applicant.toLowerCase().includes(search) ||
             form.area.toLowerCase().includes(search) ||
             form.budgetItem.toLowerCase().includes(search) ||
-            form.date.toLowerCase().includes(search) || 
-            form.Mount.toString().toLowerCase().includes(search); 
+            form.date.toLowerCase().includes(search) ||
+            form.Mount.toString().toLowerCase().includes(search);
 
         const matchesStatus = (status === 'all' || form.status === status);
-        const isCurrentUser = hasSpecialAccess || form.applicant.toLowerCase() === userEmail;
+        const isCurrentUser = hasSpecialAccess || 
+            form.applicant.toLowerCase() === userEmail || 
+            form.applicant.toLowerCase().includes(userName);
 
         return matchesSearch && matchesStatus && isCurrentUser;
     });
 
-filteredForms.forEach(form => {
-const [day, month, year] = form.date.split('/').map(Number);
-form.dateObject = new Date(year, month - 1, day); 
-});
+    filteredForms.forEach(form => {
+        const [day, month, year] = form.date.split('/').map(Number);
+        form.dateObject = new Date(year, month - 1, day);
+    });
 
-if (sortOrder === 'dateDesc') {
-filteredForms.sort((a, b) => b.dateObject - a.dateObject);
-} else {
-filteredForms.sort((a, b) => a.dateObject - b.dateObject);
+    if (sortOrder === 'dateDesc') {
+        filteredForms.sort((a, b) => b.dateObject - a.dateObject);
+    } else {
+        filteredForms.sort((a, b) => a.dateObject - b.dateObject);
+    }
+
+    filteredForms.forEach(form => {
+        const day = form.dateObject.getDate().toString().padStart(2, '0');
+        const month = (form.dateObject.getMonth() + 1).toString().padStart(2, '0');
+        const year = form.dateObject.getFullYear();
+        form.date = `${day}/${month}/${year}`;
+    });
+
+    displayForms(filteredForms, pageSize, currentPage);
+    setupPagination(filteredForms.length, pageSize, currentPage);
 }
 
-filteredForms.forEach(form => {
-const day = form.dateObject.getDate().toString().padStart(2, '0');
-const month = (form.dateObject.getMonth() + 1).toString().padStart(2, '0');
-const year = form.dateObject.getFullYear();
-form.date = `${day}/${month}/${year}`;
-});
-
-displayForms(filteredForms, pageSize, currentPage);
-setupPagination(filteredForms.length, pageSize, currentPage);
-}
 
 function displayForms(forms, pageSize, page) {
     const start = (page - 1) * pageSize;
