@@ -293,6 +293,7 @@ function setupPagination(totalItems, pageSize, page) {
 document.getElementById('searchBox').addEventListener('keyup', applyFilters);
 document.getElementById('statusFilter').addEventListener('change', applyFilters);
 document.getElementById('sortFilter').addEventListener('change', applyFilters);
+document.getElementById('companyFilter').addEventListener('change', applyFilters);
 document.getElementById('pageSize').addEventListener('change', () => {
     currentPage = 1;
     applyFilters();
