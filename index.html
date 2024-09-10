@@ -30,6 +30,11 @@
                     <option value="formulariosNoAutorizados">No Autorizados</option>
                     <option value="solicitudesPendientes">Pendientes</option>
                 </select>
+                <select id="companyFilter" onchange="applyFilters()">
+                    <option value="all">Todas las empresas</option>
+                    <option value="Cosmo">Cosmo</option>
+                    <option value="OneDerful">OneDerful</option>
+                </select>
                 <select id="sortFilter" onchange="applyFilters()">
                     <option value="dateDesc">Fecha Descendente</option>
                     <option value="dateAsc">Fecha Ascendente</option>                  
@@ -40,7 +45,7 @@
                 <option value="10" selected>10 por página</option>
                 <option value="10000">Ver todos</option>
             </select>
-        </div>
+        </div>        
         <ul id="formsList"></ul>
         <div class="pagination"></div>
     </div>
