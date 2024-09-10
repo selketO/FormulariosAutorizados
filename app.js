@@ -184,8 +184,12 @@ function applyFilters() {
             form.date.toLowerCase().includes(search) ||
             form.Mount.toString().toLowerCase().includes(search);
 
+        // Filtrar por empresa, incluyendo casos especiales para Biancorelab
+        const matchesCompany = (company === 'all' || 
+                                (company === 'Biancorelab' && !form.company) || 
+                                form.company === company);
+
         const matchesStatus = (status === 'all' || form.status === status);
-        const matchesCompany = (company === 'all' || form.company === company);
         const isCurrentUser = hasSpecialAccess || 
             form.applicant.toLowerCase() === userEmail || 
             form.applicant.toLowerCase().includes(userName);
