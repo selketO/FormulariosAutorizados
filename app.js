@@ -32,11 +32,11 @@ function parseJwt(token) {
 }
 
 function redirectToLogin() {
-    window.location.href = 'https://login-teal-three.vercel.app/';
+    window.location.href = 'https://bclmgm.com/';
 }
 
 function validateTokenAndProceed(token) {
-    fetch('https://artistic-verdant-flock.glitch.me/validate-token', {
+    fetch('https://bclmgm.com/auth/validate-token', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`
